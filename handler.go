@@ -13,9 +13,9 @@ import (
 // http.Handler will be called instead.
 func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		from := request.URL
-		if to, ok := pathsToUrls[from.String()]; ok {
-			http.Redirect(writer, request, to, 302)
+		from := request.URL.Path
+		if to, ok := pathsToUrls[from]; ok {
+			http.Redirect(writer, request, to, http.StatusFound)
 		} else {
 			fallback.ServeHTTP(writer, request)
 		}
@@ -49,7 +49,7 @@ func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 	if e := yaml.Unmarshal(yml, &yamlOut); e != nil {
 		return nil, e
 	}
-	mapper := make(map[string]string, len(yamlOut))
+	mapper := make(map[string]string)
 	for _, entry := range(yamlOut) {
 		mapper[entry.Path] = entry.Url
 	}
